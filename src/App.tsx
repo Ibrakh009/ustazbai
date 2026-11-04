@@ -10,6 +10,9 @@ import { GrantCalculator } from './components/GrantCalculator';
 import { AdminLoginModal } from './components/AdminLoginModal';
 import { AdminPanel } from './components/AdminPanel';
 import { Footer } from './components/Footer';
+import { MobileBottomNav } from './components/MobileBottomNav';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { usePWAInstall } from './hooks/usePWAInstall';
 
 import { INITIAL_MENTORS } from './data/mentorsData';
 import { UNIVERSITIES_KZ } from './data/educationData';
@@ -93,6 +96,8 @@ export default function App() {
   });
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const [showPwaGuide, setShowPwaGuide] = useState(false);
 
   // Sync state to LocalStorage
   useEffect(() => {
@@ -261,7 +266,7 @@ export default function App() {
         bookingCount={bookings.filter((b) => b.status === 'new').length}
       />
 
-      <main className="flex-1">
+      <main className="flex-1 pb-20 md:pb-0">
         {activeTab === 'mentors' && (
           <>
             {/* Hero & Multi-Filters */}
@@ -381,6 +386,73 @@ export default function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
       />
+
+      {/* Mobile Bottom Navigation Bar (PWA Standalone UX) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenInstallModal={async () => {
+          if (isInstallable) {
+            const res = await install();
+            if (!res) setShowPwaGuide(true);
+          } else {
+            setShowPwaGuide(true);
+          }
+        }}
+      />
+
+      {/* Standalone PWA Guide Modal */}
+      {showPwaGuide && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div
+            className="relative w-full max-w-sm bg-[#110a20] border border-purple-800/60 rounded-2xl p-6 shadow-2xl shadow-purple-950/90 text-center space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowPwaGuide(false)}
+              className="absolute right-4 top-4 text-purple-400 hover:text-white"
+            >
+              ✕
+            </button>
+
+            <div className="w-16 h-16 mx-auto rounded-2xl overflow-hidden shadow-xl shadow-purple-900/50 border border-purple-500/50 bg-[#160c2c] flex items-center justify-center">
+              <img src="/icon.svg" alt="USTAZ Icon" className="w-full h-full object-cover" />
+            </div>
+
+            <div>
+              <h3 className="font-bold text-white text-base">
+                USTAZ.KZ как приложение
+              </h3>
+              <p className="text-xs text-purple-300/70 mt-1">
+                Открывайте платформу в 1 клик с экрана смартфона без адресной строки
+              </p>
+            </div>
+
+            {isIOS ? (
+              <div className="p-3.5 rounded-xl bg-[#170e2b] border border-purple-900/40 text-left text-xs space-y-2 text-purple-200">
+                <p>1. Внизу Safari нажмите кнопку <strong>«Поделиться»</strong> (квадрат со стрелкой вверх ⎋).</p>
+                <p>2. Выберите <strong>«На экран «Домой»»</strong> (Add to Home Screen ➕).</p>
+                <p>3. Нажмите <strong>«Добавить»</strong>.</p>
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-xl bg-[#170e2b] border border-purple-900/40 text-left text-xs space-y-2 text-purple-200">
+                <p>1. В меню Chrome нажмите на три точки <strong>⋮</strong> вверху справа.</p>
+                <p>2. Нажмите <strong>«Установить приложение»</strong>.</p>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowPwaGuide(false)}
+              className="w-full py-2.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs"
+            >
+              Понятно
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       {/* 1. Mentor Profile Detail Modal */}

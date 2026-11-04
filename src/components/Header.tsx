@@ -1,5 +1,6 @@
 import React from 'react';
 import { Lock, Sparkles, ShieldCheck } from 'lucide-react';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   activeTab: 'mentors' | 'education' | 'business' | 'calculator';
@@ -113,6 +114,8 @@ export const Header: React.FC<HeaderProps> = ({
               )}
             </button>
           ) : null}
+
+          <PWAInstallButton className="hidden sm:flex" />
 
           <button
             onClick={() => onSelectTab('mentors')}
